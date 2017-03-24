@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>reveal-md</title>
+        <link rel="stylesheet" href="/css/reveal.css">
+        <link rel="stylesheet" href="/css/theme/black.css" id="theme">
+        <link rel="stylesheet" href="/css/highlight/zenburn.css">
+        <link rel="stylesheet" href="/css/print/paper.css" type="text/css" media="print">
+
+    </head>
+    <body>
+
+        <div class="reveal">
+            <div class="slides"><section  data-markdown><script type="text/template">## PHP array_functions and Pass By Reference
+ 
+Paul Scarrone (@PaulSCoder)
+
+[SavvySoftWorks](https://savvysoftworks.com)
+</script></section><section  data-markdown><script type="text/template">
+## Lets review
+
+- array_chunk
+- array_reduce
+- array_map
+- array_fill
+- array_values
+</script></section><section  data-markdown><script type="text/template">
+## Primitives in C
+
+- Character
+- Integer
+- Boolean
+- Reference
+</script></section><section  data-markdown><script type="text/template">
+## Primitive Type in PHP
+
+- Array
+- String
+</script></section><section  data-markdown><script type="text/template">
+## array_map
+
+<pre style="left: -6em;">
+    array array_map ( callable $callback , array $array1 [, array $... ] )
+</pre>
+
+<pre>
+    $arr = ["a", "a", "a"];
+    array_map(function ($element) {
+        return "H".$element;
+    }, $arr);
+</pre>
+</script></section><section  data-markdown><script type="text/template">
+## Ha Ha Ha
+</script></section><section  data-markdown><script type="text/template">
+## array_reduce
+
+<pre style="left: -8em;">
+    mixed array_reduce ( array $array , callable $callback [, mixed $initial = NULL ] )
+</pre>
+
+<pre>
+    $arr = ["H", "o", "w", " ", "N", "o", "w"];
+    array_map($arr, function ($carry, $element) {
+        return $carry.$element;
+    }, "");
+</pre>
+</script></section><section  data-markdown><script type="text/template">
+## How Now
+</script></section><section  data-markdown><script type="text/template">
+## array_filter
+
+<pre style="left: -7em;">
+    array array_filter ( array $array [, callable $callback [, int $flag = 0 ]] )
+</pre>
+
+<pre>
+    $arr = ["H", "o", "w", " ", "N", "o", "w"];
+    array_filter ($arr, function ($element) {
+        return $element != " ";
+    });
+</pre>
+</script></section><section  data-markdown><script type="text/template">
+## HOWNOW
+</script></section><section  data-markdown><script type="text/template">
+## Big Question
+##### Why is the argument pattern different for many of the array functions
+
+- Definition Varadic Function - a function of indefinite arity
+</script></section><section  data-markdown><script type="text/template">
+## What about Objects
+<pre>
+$arr = [
+  'owner' => [
+    'first_name' => 'Paul',
+    'last_name' => 'Scarrone',
+    'location' => 'Greensburg'
+  ],
+  ...
+];
+
+$keys = array_keys($arr);
+
+$locations = array_reduce($keys,  function ($carry, $key) use ($arr) {
+  $location = $arr[$key]['location'];
+  $carry[] = $location;
+  return $carry;
+}, []);
+
+var_dump($locations);
+</pre>
+</script></section><section  data-markdown><script type="text/template">
+## Updating Original Object
+<pre>
+$arr = [
+  'owner' => [
+    'first_name' => 'Paul',
+    'last_name' => 'Scarrone',
+    'location' => 'Greensburg'
+  ],
+  ...
+];
+
+$keys = array_keys($arr);
+
+$locations = array_reduce($keys,  function ($carry, $key) use ($arr) {
+  $arr[$key]['Zip'] = 15601;
+  return $carry;
+}, []);
+
+var_dump($arr);
+</pre>
+</script></section><section  data-markdown><script type="text/template">
+## Output (Fail)
+<pre>
+array(2) {
+  ["owner"]=>
+  array(3) {
+    ["first_name"]=>
+    string(4) "Paul"
+    ["last_name"]=>
+    string(8) "Scarrone"
+    ["location"]=>
+    string(10) "Greensburg"
+  }
+}
+</pre>
+</script></section><section  data-markdown><script type="text/template">
+## Updating Original Object (Real)
+<pre>
+$arr = [
+  'owner' => [
+    'first_name' => 'Paul',
+    'last_name' => 'Scarrone',
+    'location' => 'Greensburg'
+  ],
+  ...
+];
+
+$keys = array_keys($arr);
+
+$locations = array_reduce($keys,  function ($carry, $key) use (&$arr) {
+  $arr[$key]['Zip'] = 15601;
+  return $carry;
+}, []);
+
+var_dump($arr);
+</pre>
+</script></section><section  data-markdown><script type="text/template">
+## Output
+<pre>
+array(2) {
+  ["owner"]=>
+  array(4) {
+    ["first_name"]=>
+    string(4) "Paul"
+    ["last_name"]=>
+    string(8) "Scarrone"
+    ["location"]=>
+    string(10) "Greensburg"
+    ["Zip"]=>
+    int(15601)
+  }
+}
+</pre>
+</script></section></div>
+        </div>
+
+        <script src="/lib/js/head.min.js"></script>
+        <script src="/js/reveal.js"></script>
+
+        <script>
+            function extend() {
+              var target = {};
+              for (var i = 0; i < arguments.length; i++) {
+                var source = arguments[i];
+                for (var key in source) {
+                  if (source.hasOwnProperty(key)) {
+                    target[key] = source[key];
+                  }
+                }
+              }
+              return target;
+            }
+
+            // Optional libraries used to extend on reveal.js
+            var deps = [
+              { src: '/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+              { src: '/plugin/markdown/marked.js', condition: function() { return !!document.querySelector('[data-markdown]'); } },
+              { src: '/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector('[data-markdown]'); } },
+              { src: '/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+              { src: '/plugin/zoom-js/zoom.js', async: true },
+              { src: '/plugin/notes/notes.js', async: true },
+              { src: '/plugin/math/math.js', async: true }
+            ];
+
+            // default options to init reveal.js
+            var defaultOptions = {
+              controls: true,
+              progress: true,
+              history: true,
+              center: true,
+              transition: 'default', // none/fade/slide/convex/concave/zoom
+              dependencies: deps
+            };
+
+            // options from URL query string
+            var queryOptions = Reveal.getQueryHash() || {};
+
+            var options = {};
+            options = extend(defaultOptions, options, queryOptions);
+            Reveal.initialize(options);
+        </script>
+        
+    </body>
+</html>
